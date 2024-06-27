@@ -11,7 +11,7 @@ class ConnectFourEnv(gym.Env):
         self.action_space = spaces.Discrete(7)
         
         # Observation space is a 6x7 grid with 3 possible values: 0 (empty), 1 (player 1), 2 (player 2)
-        self.observation_space = spaces.Box(low=0, high=2, shape=(6, 7), dtype=np.int)
+        self.observation_space = spaces.Box(low=0, high=2, shape=(6, 7), dtype=int)  # Updated dtype to `int` directly
         
         self.board = np.zeros((6, 7), dtype=int)
         self.current_player = 1
