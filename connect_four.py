@@ -102,15 +102,16 @@ class ConnectFourGUI:
             messagebox.showwarning("Connect Four", "Column is full. Try another column.")
 
     def update_display(self):
+        # Update the visual display to show the discs as "dropped" from top to bottom
         for r in range(6):
             for c in range(7):
                 disc = self.game.board[r][c]
                 if disc == 1:
-                    self.board_labels[r][c].config(bg='yellow')
+                    self.board_labels[5-r][c].config(bg='yellow')
                 elif disc == 2:
-                    self.board_labels[r][c].config(bg='red')
+                    self.board_labels[5-r][c].config(bg='red')
                 else:
-                    self.board_labels[r][c].config(bg='white')
+                    self.board_labels[5-r][c].config(bg='white')
         
         self.root.update()
 
