@@ -1,137 +1,89 @@
-import tkinter as tk
-from tkinter import messagebox
+import gym
+from gym import spaces
 import numpy as np
 
-class ConnectFour:
+class ConnectFourEnv(gym.Env):
     def __init__(self):
-        self.board = np.zeros((6, 7), dtype=int)  # 6 rows, 7 columns board
-        self.current_player = 1  # Player 1 starts
-        self.score = {1: 0, 2: 0}  # Scoreboard for players
+        super(ConnectFourEnv, self).__init__()
+        
+        # Define action and observation space
+        # Action space is discrete with 7 possible actions (columns to drop a disc)
+        self.action_space = spaces.Discrete(7)
+        
+        # Observation space is a 6x7 grid with 3 possible values: 0 (empty), 1 (player 1), 2 (player 2)
+        self.observation_space = spaces.Box(low=0, high=2, shape=(6, 7), dtype=np.int)
+        
+        self.board = np.zeros((6, 7), dtype=int)
+        self.current_player = 1
+        self.done = False
+        self.winner = None
 
-    def drop_disc(self, column):
+    def reset(self):
+        self.board = np.zeros((6, 7), dtype=int)
+        self.current_player = 1
+        self.done = False
+        self.winner = None
+        return self.board
+
+    def step(self, action):
+        if self.done:
+            raise ValueError("Cannot step in a finished environment")
+        
+        if self.board[5, action] != 0:
+            # Invalid move (column is full), return current state and a high negative reward
+            return self.board, -10, True, {}
+        
+        # Drop the disc in the selected column
         for row in range(6):
-            if self.board[row][column] == 0:
-                self.board[row][column] = self.current_player
-                return True
-        return False  # Column is full
+            if self.board[row, action] == 0:
+                self.board[row, action] = self.current_player
+                break
+        
+        # Check for a win or tie
+        if self._check_winner(self.current_player):
+            self.done = True
+            self.winner = self.current_player
+            return self.board, 10, True, {}
+        
+        if self._is_board_full():
+            self.done = True
+            return self.board, 0, True, {}  # Tie
 
-    def switch_player(self):
-        self.current_player = 3 - self.current_player  # Switch between 1 and 2
+        # Switch players
+        self.current_player = 3 - self.current_player
+        
+        return self.board, 0, False, {}
 
-    def is_winning_move(self, player):
-        for c in range(4):
+    def _check_winner(self, player):
+        # Check horizontal, vertical, and diagonal (both directions) for a win
+        for c in range(7 - 3):
             for r in range(6):
-                if self.board[r][c] == player and self.board[r][c+1] == player and self.board[r][c+2] == player and self.board[r][c+3] == player:
+                if self.board[r, c] == player and self.board[r, c+1] == player and self.board[r, c+2] == player and self.board[r, c+3] == player:
                     return True
-
+        
         for c in range(7):
-            for r in range(3):
-                if self.board[r][c] == player and self.board[r+1][c] == player and self.board[r+2][c] == player and self.board[r+3][c] == player:
+            for r in range(6 - 3):
+                if self.board[r, c] == player and self.board[r+1, c] == player and self.board[r+2, c] == player and self.board[r+3, c] == player:
                     return True
 
-        for c in range(4):
-            for r in range(3):
-                if self.board[r][c] == player and self.board[r+1][c+1] == player and self.board[r+2][c+2] == player and self.board[r+3][c+3] == player:
+        for c in range(7 - 3):
+            for r in range(6 - 3):
+                if self.board[r, c] == player and self.board[r+1, c+1] == player and self.board[r+2, c+2] == player and self.board[r+3, c+3] == player:
                     return True
 
-        for c in range(4):
+        for c in range(7 - 3):
             for r in range(3, 6):
-                if self.board[r][c] == player and self.board[r-1][c+1] == player and self.board[r-2][c+2] == player and self.board[r-3][c+3] == player:
+                if self.board[r, c] == player and self.board[r-1, c+1] == player and self.board[r-2, c+2] == player and self.board[r-3, c+3] == player:
                     return True
 
         return False
 
-    def is_full(self):
-        return all(self.board[5][col] != 0 for col in range(7))  # Top row is full
+    def _is_board_full(self):
+        return all(self.board[5, col] != 0 for col in range(7))
 
-    def reset_board(self):
-        self.board = np.zeros((6, 7), dtype=int)
+    def render(self, mode='human'):
+        # Print the board to the console
+        print(np.flip(self.board, 0))
 
-    def update_score(self, winner):
-        if winner in self.score:
-            self.score[winner] += 1
-
-class ConnectFourGUI:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Connect Four")
-        self.game = ConnectFour()
-        self.buttons = []
-        self.create_board()
-        self.update_display()
-
-    def create_board(self):
-        frame = tk.Frame(self.root)
-        frame.pack()
-        
-        # Create column buttons for dropping discs
-        for col in range(7):
-            button = tk.Button(frame, text=f"Col {col+1}", command=lambda c=col: self.handle_move(c))
-            button.grid(row=0, column=col)
-            self.buttons.append(button)
-        
-        # Create the game board grid
-        self.board_labels = [[tk.Label(frame, bg='white', font=('Arial', 24), width=4, height=2, relief="solid", borderwidth=1)
-                              for _ in range(7)] for _ in range(6)]
-        
-        for r in range(6):
-            for c in range(7):
-                self.board_labels[r][c].grid(row=r+1, column=c)
-
-        # Create reset and quit buttons
-        reset_button = tk.Button(self.root, text="Reset", command=self.reset_game)
-        reset_button.pack(side=tk.LEFT, padx=10, pady=10)
-        
-        quit_button = tk.Button(self.root, text="Quit", command=self.root.quit)
-        quit_button.pack(side=tk.RIGHT, padx=10, pady=10)
-
-    def handle_move(self, column):
-        if self.game.drop_disc(column):
-            self.update_display()
-            if self.game.is_winning_move(self.game.current_player):
-                messagebox.showinfo("Connect Four", f"Player {self.game.current_player} wins!")
-                self.game.update_score(self.game.current_player)
-                self.update_scoreboard()
-                self.reset_board()
-            elif self.game.is_full():
-                messagebox.showinfo("Connect Four", "It's a tie!")
-                self.reset_board()
-            else:
-                self.game.switch_player()
-        else:
-            messagebox.showwarning("Connect Four", "Column is full. Try another column.")
-
-    def update_display(self):
-        # Update the visual display to show the discs as "dropped" from top to bottom
-        for r in range(6):
-            for c in range(7):
-                disc = self.game.board[r][c]
-                if disc == 1:
-                    self.board_labels[5-r][c].config(bg='yellow')
-                elif disc == 2:
-                    self.board_labels[5-r][c].config(bg='red')
-                else:
-                    self.board_labels[5-r][c].config(bg='white')
-        
-        self.root.update()
-
-    def reset_board(self):
-        self.game.reset_board()
-        self.update_display()
-
-    def reset_game(self):
-        self.reset_board()
-        self.game.score = {1: 0, 2: 0}
-        self.update_scoreboard()
-
-    def update_scoreboard(self):
-        score_text = f"Player 1 (Yellow): {self.game.score[1]} | Player 2 (Red): {self.game.score[2]}"
-        self.root.title(f"Connect Four - {score_text}")
-
-def main():
-    root = tk.Tk()
-    app = ConnectFourGUI(root)
-    root.mainloop()
-
-if __name__ == "__main__":
-    main()
+    def close(self):
+        pass
