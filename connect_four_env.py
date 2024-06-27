@@ -7,11 +7,10 @@ class ConnectFourEnv(gym.Env):
         super(ConnectFourEnv, self).__init__()
         
         # Define action and observation space
-        # Action space is discrete with 7 possible actions (columns to drop a disc)
         self.action_space = spaces.Discrete(7)
         
-        # Observation space is a 6x7 grid with 3 possible values: 0 (empty), 1 (player 1), 2 (player 2)
-        self.observation_space = spaces.Box(low=0, high=2, shape=(6, 7), dtype=int)
+        # Flatten the observation space to a 1D vector
+        self.observation_space = spaces.Box(low=0, high=2, shape=(6 * 7,), dtype=int)
         
         self.board = np.zeros((6, 7), dtype=int)
         self.current_player = 1
@@ -27,7 +26,7 @@ class ConnectFourEnv(gym.Env):
         self.current_player = 1
         self.done = False
         self.winner = None
-        return self.board, {}
+        return self.board.flatten(), {}
 
     def step(self, action):
         if self.done:
@@ -35,7 +34,7 @@ class ConnectFourEnv(gym.Env):
         
         if self.board[5, action] != 0:
             # Invalid move (column is full), return current state and a high negative reward
-            return self.board, -10, True, {}
+            return self.board.flatten(), -10, True, False, {}
         
         # Drop the disc in the selected column
         for row in range(6):
@@ -47,16 +46,16 @@ class ConnectFourEnv(gym.Env):
         if self._check_winner(self.current_player):
             self.done = True
             self.winner = self.current_player
-            return self.board, 10, True, {}
+            return self.board.flatten(), 10, True, False, {}
         
         if self._is_board_full():
             self.done = True
-            return self.board, 0, True, {}  # Tie
+            return self.board.flatten(), 0, True, False, {}  # Tie
 
         # Switch players
         self.current_player = 3 - self.current_player
         
-        return self.board, 0, False, {}
+        return self.board.flatten(), 0, False, False, {}
 
     def _check_winner(self, player):
         # Check horizontal, vertical, and diagonal (both directions) for a win
