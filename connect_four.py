@@ -71,7 +71,7 @@ class ConnectFourGUI:
             self.buttons.append(button)
         
         # Create the game board grid
-        self.board_labels = [[tk.Label(frame, text='.', font=('Arial', 24), width=4, height=2, relief="solid", borderwidth=1)
+        self.board_labels = [[tk.Label(frame, bg='white', font=('Arial', 24), width=4, height=2, relief="solid", borderwidth=1)
                               for _ in range(7)] for _ in range(6)]
         
         for r in range(6):
