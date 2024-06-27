@@ -14,8 +14,14 @@ def main():
             
             valid_move = False
             while not valid_move:
+                user_input = input(f"Player {game.current_player}, choose column (0-6) or 'q' to quit: ")
+                
+                if user_input.lower() == 'q':
+                    print("Quitting the game...")
+                    return  # Exit the game loop and end the program
+                
                 try:
-                    column = int(input(f"Player {game.current_player}, choose column (0-6): "))
+                    column = int(user_input)
                     if 0 <= column < 7:
                         valid_move = game.drop_disc(column)
                         if not valid_move:
@@ -23,7 +29,7 @@ def main():
                     else:
                         print("Invalid column. Choose a number between 0 and 6.")
                 except ValueError:
-                    print("Invalid input. Please enter a number between 0 and 6.")
+                    print("Invalid input. Please enter a number between 0 and 6, or 'q' to quit.")
             
             if game.is_winning_move(game.current_player):
                 game.display_board()
