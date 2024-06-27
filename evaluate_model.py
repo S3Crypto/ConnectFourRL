@@ -1,8 +1,7 @@
-import gymnasium as gym
 import numpy as np
 import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
-from stable_baselines3.common.vec_env import DummyVecEnv  # Updated import
+from stable_baselines3.common.vec_env import DummyVecEnv
 from connect_four_env import ConnectFourEnv
 
 # Function to evaluate model performance
@@ -15,10 +14,11 @@ def evaluate_model(model, env, num_episodes=100):
         episode_length = 0
         while not done:
             action, _ = model.predict(obs)
-            obs, _, done, _ = env.step(action)
+            obs, _, done, info = env.step(action)  # Capture `info` returned by step
             episode_length += 1
         episode_lengths.append(episode_length)
-        if env.winner == 1:  # Assuming player 1 is the model being evaluated
+        # Access 'winner' from info dictionary
+        if info[0]['winner'] == 1:  # Assuming player 1 is the model being evaluated
             win_count += 1
     win_rate = win_count / num_episodes
     avg_game_length = np.mean(episode_lengths)
