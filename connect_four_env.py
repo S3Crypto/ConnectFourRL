@@ -2,7 +2,7 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 
-class ConnectFourEnv(gym.Env):  # Ensure it inherits from gymnasium.Env
+class ConnectFourEnv(gym.Env):
     def __init__(self):
         super(ConnectFourEnv, self).__init__()
         
@@ -18,7 +18,11 @@ class ConnectFourEnv(gym.Env):  # Ensure it inherits from gymnasium.Env
         self.done = False
         self.winner = None
 
-    def reset(self):
+    def reset(self, seed=None, options=None):
+        # Set the seed for reproducibility
+        if seed is not None:
+            self.np_random, seed = gym.utils.seeding.np_random(seed)
+
         self.board = np.zeros((6, 7), dtype=int)
         self.current_player = 1
         self.done = False
