@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 import numpy as np
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
@@ -8,7 +8,7 @@ from connect_four_env import ConnectFourEnv
 # Create the Connect Four environment
 env = ConnectFourEnv()
 
-# Check if the environment follows the gym interface
+# Check if the environment follows the gymnasium interface
 check_env(env)
 
 # Wrap the environment in a DummyVecEnv

@@ -1,8 +1,8 @@
-import gym
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 import numpy as np
 
-class ConnectFourEnv(gym.Env):
+class ConnectFourEnv(gym.Env):  # Ensure it inherits from gymnasium.Env
     def __init__(self):
         super(ConnectFourEnv, self).__init__()
         
@@ -11,7 +11,7 @@ class ConnectFourEnv(gym.Env):
         self.action_space = spaces.Discrete(7)
         
         # Observation space is a 6x7 grid with 3 possible values: 0 (empty), 1 (player 1), 2 (player 2)
-        self.observation_space = spaces.Box(low=0, high=2, shape=(6, 7), dtype=int)  # Updated dtype to `int` directly
+        self.observation_space = spaces.Box(low=0, high=2, shape=(6, 7), dtype=int)
         
         self.board = np.zeros((6, 7), dtype=int)
         self.current_player = 1
@@ -23,7 +23,7 @@ class ConnectFourEnv(gym.Env):
         self.current_player = 1
         self.done = False
         self.winner = None
-        return self.board
+        return self.board, {}
 
     def step(self, action):
         if self.done:
